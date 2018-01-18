@@ -15,7 +15,7 @@ module Test.Pos.Cbor.CborSpec
 import           Universum
 
 import qualified Data.ByteString as BS
-import           Test.Hspec (Arg, Expectation, Spec, SpecWith, describe, it, pendingWith, shouldBe)
+import           Test.Hspec (Arg, Expectation, Spec, SpecWith, describe, it, shouldBe)
 import           Test.Hspec.QuickCheck (modifyMaxSize, modifyMaxSuccess, prop)
 import           Test.QuickCheck
 import           Test.QuickCheck.Arbitrary.Generic (genericArbitrary, genericShrink)
@@ -39,8 +39,7 @@ import           Pos.Core.Common (ScriptVersion)
 import           Pos.Data.Attributes (Attributes (..), decodeAttributes, encodeAttributes)
 import qualified Test.Pos.Cbor.RefImpl as R
 import           Test.Pos.Helpers (binaryTest)
-import           Test.Pos.Configuration (withDefConfiguration)
-import           Pos.Util.QuickCheck.Property (expectationError)
+import           Test.Pos.Util (expectationError, withDefConfiguration)
 
 data User
     = Login { login :: String
@@ -336,33 +335,3 @@ spec = withDefConfiguration $ do
         describe "Lib/core instances" $ do
             binaryTest @(Attributes X1)
             binaryTest @(Attributes X2)
-
-            -- Pending specs which doesn't have an `Arbitrary` or `Eq` instance defined.
-            it "UserSecret" $ pendingWith "No Eq instance defined"
-            it "WalletUserSecret" $ pendingWith "No Eq instance defined"
-            pendingNoArbitrary "Undo"
-            pendingNoArbitrary "DataMsg (UpdateProposal, [UpdateVote])"
-            pendingNoArbitrary "DataMsg UpdateVote"
-            pendingNoArbitrary "MsgGetHeaders"
-            pendingNoArbitrary "MsgGetBlocks"
-            pendingNoArbitrary "WithHash"
-            pendingNoArbitrary "Pvss.PublicKey"
-            pendingNoArbitrary "Pvss.KeyPair"
-            pendingNoArbitrary "Pvss.Secret"
-            pendingNoArbitrary "Pvss.DecryptedShare"
-            pendingNoArbitrary "Pvss.EncryptedShare"
-            pendingNoArbitrary "Pvss.Proof"
-            pendingNoArbitrary "Ed25519.PointCompressed"
-            pendingNoArbitrary "Ed25519.Scalar"
-            pendingNoArbitrary "Ed25519.Signature"
-            pendingNoArbitrary "CC.ChainCode"
-            pendingNoArbitrary "CC.XPub"
-            pendingNoArbitrary "CC.XPrv"
-            pendingNoArbitrary "CC.XSignature"
-            pendingNoArbitrary "EdStandard.PublicKey"
-            pendingNoArbitrary "EdStandard.SecretKey"
-            pendingNoArbitrary "EdStandard.Signature"
-            pendingNoArbitrary "EncryptedSecretKey"
-
-pendingNoArbitrary :: String -> Spec
-pendingNoArbitrary ty = it ty $ pendingWith "Arbitrary instance required"
