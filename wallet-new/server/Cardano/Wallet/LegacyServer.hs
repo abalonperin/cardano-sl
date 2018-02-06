@@ -1,11 +1,11 @@
 {-# LANGUAGE RankNTypes #-}
-module Cardano.Wallet.Server where
+module Cardano.Wallet.LegacyServer where
 
 import           Cardano.Wallet.API
 import           Cardano.Wallet.API.V1.Migration as Migration
 
-import qualified Cardano.Wallet.API.V0.Handlers as V0
-import qualified Cardano.Wallet.API.V1.Handlers as V1
+import qualified Cardano.Wallet.API.V0.Handlers       as V0
+import qualified Cardano.Wallet.API.V1.LegacyHandlers as V1
 
 import           Pos.Diffusion.Types (Diffusion (..))
 import           Pos.Wallet.Web.Mode (WalletWebMode)

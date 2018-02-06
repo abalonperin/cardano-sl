@@ -133,17 +133,17 @@ executable cardano-node-new
                        -fno-warn-orphans
                        -O2
   other-modules:       Cardano.Wallet.API.V0.Handlers
-                       Cardano.Wallet.API.V1.Handlers
-                       Cardano.Wallet.API.V1.Handlers.Accounts
-                       Cardano.Wallet.API.V1.Handlers.Addresses
-                       Cardano.Wallet.API.V1.Handlers.Transactions
-                       Cardano.Wallet.API.V1.Handlers.Settings
-                       Cardano.Wallet.API.V1.Handlers.Info
-                       Cardano.Wallet.API.V1.Handlers.Wallets
-                       Cardano.Wallet.API.V1.Handlers.Updates
+                       Cardano.Wallet.API.V1.LegacyHandlers
+                       Cardano.Wallet.API.V1.LegacyHandlers.Accounts
+                       Cardano.Wallet.API.V1.LegacyHandlers.Addresses
+                       Cardano.Wallet.API.V1.LegacyHandlers.Transactions
+                       Cardano.Wallet.API.V1.LegacyHandlers.Settings
+                       Cardano.Wallet.API.V1.LegacyHandlers.Info
+                       Cardano.Wallet.API.V1.LegacyHandlers.Wallets
+                       Cardano.Wallet.API.V1.LegacyHandlers.Updates
                        Cardano.Wallet.API.V1.Swagger
                        Cardano.Wallet.API.V1.Swagger.Example
-                       Cardano.Wallet.Server
+                       Cardano.Wallet.LegacyServer
                        Cardano.Wallet.Server.CLI
                        Cardano.Wallet.Server.Plugins
   build-depends:       base

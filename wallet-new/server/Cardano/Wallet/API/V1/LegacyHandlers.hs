@@ -4,7 +4,7 @@
 {-# LANGUAGE PolyKinds             #-}
 {-# LANGUAGE RankNTypes            #-}
 {-# LANGUAGE TypeFamilies          #-}
-module Cardano.Wallet.API.V1.Handlers where
+module Cardano.Wallet.API.V1.LegacyHandlers where
 
 import           Universum
 
@@ -12,12 +12,12 @@ import           Pos.Diffusion.Types (Diffusion(sendTx))
 
 import qualified Cardano.Wallet.API.V1 as V1
 import qualified Cardano.Wallet.API.V1.Addresses as Addresses
-import qualified Cardano.Wallet.API.V1.Handlers.Addresses as Addresses
-import qualified Cardano.Wallet.API.V1.Handlers.Info as Info
-import qualified Cardano.Wallet.API.V1.Handlers.Settings as Settings
-import qualified Cardano.Wallet.API.V1.Handlers.Transactions as Transactions
-import qualified Cardano.Wallet.API.V1.Handlers.Updates as Updates
-import qualified Cardano.Wallet.API.V1.Handlers.Wallets as Wallets
+import qualified Cardano.Wallet.API.V1.LegacyHandlers.Addresses as Addresses
+import qualified Cardano.Wallet.API.V1.LegacyHandlers.Info as Info
+import qualified Cardano.Wallet.API.V1.LegacyHandlers.Settings as Settings
+import qualified Cardano.Wallet.API.V1.LegacyHandlers.Transactions as Transactions
+import qualified Cardano.Wallet.API.V1.LegacyHandlers.Updates as Updates
+import qualified Cardano.Wallet.API.V1.LegacyHandlers.Wallets as Wallets
 import qualified Cardano.Wallet.API.V1.Info as Info
 import qualified Cardano.Wallet.API.V1.Settings as Settings
 import qualified Cardano.Wallet.API.V1.Transactions as Transactions

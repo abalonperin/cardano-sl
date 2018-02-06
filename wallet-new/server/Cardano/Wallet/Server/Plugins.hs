@@ -7,7 +7,7 @@ module Cardano.Wallet.Server.Plugins (
       Plugin
     , acidCleanupWorker
     , conversation
-    , walletBackend
+    , legacyWalletBackend
     , resubmitterPlugin
     , notifierPlugin
     ) where
@@ -15,7 +15,7 @@ module Cardano.Wallet.Server.Plugins (
 import           Universum
 
 import           Cardano.Wallet.API as API
-import           Cardano.Wallet.Server as API
+import           Cardano.Wallet.LegacyServer as LegacyServer
 import           Cardano.Wallet.Server.CLI (RunMode, WalletBackendParams (..), isDebugMode,
                                             walletAcidInterval, walletDbOptions)
 
@@ -69,10 +69,10 @@ conversation wArgs = (, mempty) $ map (\act -> ActionSpec $ \__diffusion -> act)
         | otherwise = []
 
 -- | A @Plugin@ to start the wallet backend API.
-walletBackend :: (HasConfigurations, HasCompileInfo)
-              => WalletBackendParams
-              -> Plugin WalletWebMode
-walletBackend WalletBackendParams {..} =
+legacyWalletBackend :: (HasConfigurations, HasCompileInfo)
+                    => WalletBackendParams
+                    -> Plugin WalletWebMode
+legacyWalletBackend WalletBackendParams {..} =
     first one $ worker walletServerOuts $ \diffusion -> do
       logInfo $ sformat ("Production mode for API: "%build)
         walletProductionApi
@@ -91,7 +91,7 @@ walletBackend WalletBackendParams {..} =
       logInfo "Wallet Web API has STARTED!"
       wsConn <- getWalletWebSockets
       ctx <- V0.walletWebModeContext
-      let app = upgradeApplicationWS wsConn $ serve API.walletAPI (API.walletServer (V0.convertHandler ctx) diffusion)
+      let app = upgradeApplicationWS wsConn $ serve API.walletAPI (LegacyServer.walletServer (V0.convertHandler ctx) diffusion)
       return $ withMiddleware walletRunMode app
 
 -- | A @Plugin@ to resubmit pending transactions.
