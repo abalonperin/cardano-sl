@@ -96,8 +96,10 @@ restoreWalletHandler :: ( L.MonadWalletLogic ctx m
                         , Mockable Async m
                         ) => PassPhrase -> CWalletInit -> m CWallet
 restoreWalletHandler passphrase cwInit = do
-    (sk, wId) <- newWallet passphrase cwInit True -- TODO(adn) readyness must be changed into richer type.
+    (sk, wId) <- newWallet passphrase cwInit False -- TODO(adn) readyness must be changed into richer type.
     restoredWallet <- restoreWalletBalance sk wId
+    -- Mark the wallet as ready, so it will be available from api endpoints.
+    WS.setWalletReady walletId True
     -- TODO(adn) Make restoreWalletHistory async.
     _ <- restoreWalletHistory sk
     return restoredWallet

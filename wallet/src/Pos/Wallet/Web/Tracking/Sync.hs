@@ -338,8 +338,6 @@ syncHistoryWithGStateUnsafe credentials@(_, walletId) wTipHeader gstateH = setLo
     startFromH <- maybe firstGenesisHeader pure wTipHeader
     mapModifier@CAccModifier{..} <- computeAccModifier startFromH
     applyModifierToWallet walletId (headerHash gstateH) mapModifier
-    -- Mark the wallet as ready, so it will be available from api endpoints.
-    WS.setWalletReady walletId True
     logInfoS $
         sformat ("Wallet "%build%" has been synced with tip "
                 %shortHashF%", "%build)
