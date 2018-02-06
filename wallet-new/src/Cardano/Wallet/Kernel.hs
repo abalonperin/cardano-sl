@@ -4,33 +4,75 @@
 -- Cardano specific types (except those types that appear in the translation
 -- of the UTxO DSL).
 module Cardano.Wallet.Kernel (
-    Wallet -- opaque
-  , bracketWalletResources
+    -- * Passive wallet
+    PassiveWallet -- opaque
+  , bracketPassiveWallet
   , init
+    -- * Active wallet
+  , ActiveWallet -- opaque
+  , bracketActiveWallet
   ) where
 
 import Universum
 
--- | The main wallet abstraction
+import Cardano.Wallet.Kernel.Diffusion (WalletDiffusion(..))
+
+import Pos.Core (TxAux)
+
+{-------------------------------------------------------------------------------
+  Passive wallet
+-------------------------------------------------------------------------------}
+
+-- | Passive wallet
 --
--- We call into this abstraction both from the node as well as from unit tests.
--- The concrete representation is not exported.
-data Wallet = Wallet
+-- A passive wallet can receive and process blocks, keeping track of state,
+-- but cannot send new transactions.
+--
+-- TODO: This is just a placeholder for now, we'll want all kinds of state
+-- in here.
+data PassiveWallet = PassiveWallet
 
 -- | Allocate wallet resources
 --
--- TODO: We'll want some constraints on the monad here, but we need to make
--- sure not to make it /too/ specific so that we can initialize the wallet
--- also from the unit tests.
-bracketWalletResources :: (Wallet -> m a) -> m a
-bracketWalletResources = ($ Wallet)
+-- NOTE: See also 'init'.
+--
+-- TODO: Here and elsewhere we'll want some constraints on this monad here, but
+-- it shouldn't be too specific.
+bracketPassiveWallet :: MonadMask m
+                     => (PassiveWallet -> m a) -> m a
+bracketPassiveWallet =
+    bracket
+      (return PassiveWallet)
+      (\_ -> return ())
 
 -- | Initialize the wallet
 --
 -- This is separate from allocating the wallet resources, and will only be
 -- called when the node is initialized (when run in the node proper).
+init :: PassiveWallet -> IO ()
+init _w = return ()
+
+{-------------------------------------------------------------------------------
+  Active wallet
+-------------------------------------------------------------------------------}
+
+-- | Active wallet
 --
--- TODO: Again, we'll want some constraints on this monad here, but again
--- it shouldn't be too specific.
-init :: Monad m => Wallet -> m ()
-init _ = return ()
+-- An active wallet can do everything the passive wallet can, but also
+-- send new transactions.
+data ActiveWallet = ActiveWallet {
+      -- | The underlying passive wallet
+      walletPassive :: PassiveWallet
+
+      -- | The wallet diffusion layer
+    , walletDiffusion :: WalletDiffusion
+    }
+
+bracketActiveWallet :: MonadMask m
+                    => PassiveWallet
+                    -> WalletDiffusion
+                    -> (ActiveWallet -> m a) -> m a
+bracketActiveWallet walletPassive walletDiffusion =
+    bracket
+      (return ActiveWallet{..})
+      (\_ -> return ())

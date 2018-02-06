@@ -92,23 +92,28 @@ actionWithNewWallet :: (HasConfigurations, HasCompileInfo)
                     -> NodeParams
                     -> NewWalletBackendParams
                     -> Production ()
-actionWithNewWallet sscParams nodeParams NewWalletBackendParams {} =
+actionWithNewWallet sscParams nodeParams params =
     bracketNodeResources
         nodeParams
         sscParams
         txpGlobalSettings
         initNodeDBs $ \nr ->
-      Kernel.bracketWalletResources $ \wallet ->
-        Kernel.Mode.runWalletMode nr wallet (mainAction nr)
+      -- TODO: Will probably want to extract some parameters from the
+      -- 'NewWalletBackendParams' to construct or initialize the wallet
+      Kernel.bracketPassiveWallet $ \wallet ->
+        Kernel.Mode.runWalletMode nr wallet (mainAction wallet nr)
   where
-    mainAction = runNodeWithInit $ Kernel.init =<< Kernel.Mode.getWallet
+    mainAction w = runNodeWithInit w $
+        liftIO $ Kernel.init w
 
-    runNodeWithInit init nr =
-        let (ActionSpec f, outs) = runNode nr plugins
+    runNodeWithInit w init nr =
+        let (ActionSpec f, outs) = runNode nr (plugins w)
          in (ActionSpec $ \s -> init >> f s, outs)
 
-    plugins :: HasConfigurations => Plugins.Plugin Kernel.Mode.WalletMode
-    plugins = mconcat []
+    -- TODO: Don't know if we need any of the other plugins that are used
+    -- in the legacy wallet (see 'actionWithWallet').
+    plugins :: Kernel.PassiveWallet -> Plugins.Plugin Kernel.Mode.WalletMode
+    plugins w = mconcat [ Plugins.walletBackend params w ]
 
 
 -- | Runs an edge node plus its wallet backend API.

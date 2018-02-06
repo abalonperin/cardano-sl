@@ -1,6 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Cardano.Wallet.Kernel.Mode (
     WalletMode
+  , WalletContext -- opaque
   , runWalletMode
   , getWallet
   ) where
@@ -12,6 +13,7 @@ import qualified Control.Monad.Reader as Mtl
 import Mockable
 import Pos.Block.BListener
 import Pos.Block.Slog
+import Pos.Block.Types
 import Pos.Communication
 import Pos.Context
 import Pos.Core
@@ -28,27 +30,21 @@ import Pos.Slotting
 import Pos.Txp.Logic
 import Pos.Txp.MemState
 import Pos.Util
+import Pos.Util.Chrono
 import Pos.Util.JsonLog
 import Pos.Util.TimeWarp (CanJsonLog(..))
 import Pos.WorkMode
 
-import Cardano.Wallet.Kernel (Wallet)
-import qualified Cardano.Wallet.Kernel.BListener as Kernel
+import Cardano.Wallet.Kernel (PassiveWallet)
 
 {-------------------------------------------------------------------------------
-  The wallet context
+  The wallet context and monad
 -------------------------------------------------------------------------------}
 
 data WalletContext = WalletContext {
-      wcWallet          :: !Wallet
+      wcWallet          :: !PassiveWallet
     , wcRealModeContext :: !(RealModeContext EmptyMempoolExt)
     }
-
-makeLensesWith postfixLFields ''WalletContext
-
-{-------------------------------------------------------------------------------
-  The wallet monad
--------------------------------------------------------------------------------}
 
 -- | The monad that the wallet runs in
 --
@@ -56,12 +52,46 @@ makeLensesWith postfixLFields ''WalletContext
 -- constraints cannot be derived, there are a /lot/ of them).
 type WalletMode = ReaderT WalletContext Production
 
-getWallet :: WalletMode Wallet
+makeLensesWith postfixLFields ''WalletContext
+
+getWallet :: WalletMode PassiveWallet
 getWallet = view wcWallet_L
 
+{-------------------------------------------------------------------------------
+  The raison d'être of the wallet monad: call into the wallet in the BListener
+-------------------------------------------------------------------------------}
+
+-- | Callback for new blocks
+--
+-- TODO: This should wrap the functionality in "Cardano.Wallet.Core" to
+-- wrap things in Cardano specific types.
+walletApplyBlocks :: PassiveWallet
+                  -> OldestFirst NE Blund
+                  -> WalletMode SomeBatchOp
+walletApplyBlocks _w _bs = do
+    -- TODO: Call into the wallet. This should be an asynchronous operation
+    -- because 'onApplyBlocks' gets called with the block lock held.
+
+    -- We don't make any changes to the DB so we always return 'mempty'.
+    return mempty
+
+-- | Callback for rollbacks
+--
+-- TODO: This should wrap the functionality in "Cardano.Wallet.Core" to
+-- wrap things in Cardano specific types.
+walletRollbackBlocks :: PassiveWallet
+                     -> NewestFirst NE Blund
+                     -> WalletMode SomeBatchOp
+walletRollbackBlocks _w _bs = do
+    -- TODO: Call into the wallet. This should be an asynchronous operation
+    -- because 'onRollbackBlocks' gets called with the block lock held.
+
+    -- We don't make any changes to the DB so we always return 'mempty'.
+    return mempty
+
 instance MonadBListener WalletMode where
-  onApplyBlocks    bs = do w <- getWallet ; Kernel.onApplyBlocks    w bs
-  onRollbackBlocks bs = do w <- getWallet ; Kernel.onRollbackBlocks w bs
+  onApplyBlocks    bs = getWallet >>= (`walletApplyBlocks`    bs)
+  onRollbackBlocks bs = getWallet >>= (`walletRollbackBlocks` bs)
 
 {-------------------------------------------------------------------------------
   Run the wallet
@@ -69,7 +99,7 @@ instance MonadBListener WalletMode where
 
 runWalletMode :: forall a. (HasConfigurations, HasCompileInfo)
               => NodeResources ()
-              -> Wallet
+              -> PassiveWallet
               -> (ActionSpec WalletMode a, OutSpecs)
               -> Production a
 runWalletMode nr wallet (action, outSpecs) =
@@ -88,7 +118,7 @@ runWalletMode nr wallet (action, outSpecs) =
     serverRealMode :: RealMode EmptyMempoolExt a
     serverRealMode = walletModeToRealMode wallet serverWalletMode
 
-walletModeToRealMode :: Wallet -> WalletMode a -> RealMode () a
+walletModeToRealMode :: PassiveWallet -> WalletMode a -> RealMode () a
 walletModeToRealMode wallet ma = do
     rmc <- ask
     let env = WalletContext {

@@ -16,7 +16,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Cardano.Wallet.TypeLits
                        Cardano.Wallet.Kernel
-                       Cardano.Wallet.Kernel.BListener
+                       Cardano.Wallet.Kernel.Diffusion
                        Cardano.Wallet.Kernel.Mode
                        Cardano.Wallet.Orphans
                        Cardano.Wallet.Orphans.Aeson
@@ -133,6 +133,7 @@ executable cardano-node-new
                        -fno-warn-orphans
                        -O2
   other-modules:       Cardano.Wallet.API.V0.Handlers
+                       Cardano.Wallet.API.V1.Handlers
                        Cardano.Wallet.API.V1.LegacyHandlers
                        Cardano.Wallet.API.V1.LegacyHandlers.Accounts
                        Cardano.Wallet.API.V1.LegacyHandlers.Addresses
@@ -144,6 +145,7 @@ executable cardano-node-new
                        Cardano.Wallet.API.V1.Swagger
                        Cardano.Wallet.API.V1.Swagger.Example
                        Cardano.Wallet.LegacyServer
+                       Cardano.Wallet.Server
                        Cardano.Wallet.Server.CLI
                        Cardano.Wallet.Server.Plugins
   build-depends:       base

@@ -61,9 +61,8 @@ data WalletBackendParams = WalletBackendParams
 
 -- | Start up parameters for the new wallet backend
 --
--- TODO: This is just a placeholder at the moment. Once we get rid of the legacy
--- implementation this can be renamed.
-data NewWalletBackendParams = NewWalletBackendParams
+-- TODO: This just wraps the legacy parameters at the moment.
+data NewWalletBackendParams = NewWalletBackendParams WalletBackendParams
     deriving (Show)
 
 -- | A richer type to specify in which mode we are running this node.
@@ -105,11 +104,12 @@ chooseWalletBackendParser = asum [
 
 -- | 'Parser' for the new wallet backend options
 newWalletBackendParamsParser :: Parser NewWalletBackendParams
-newWalletBackendParamsParser =
-    flag' NewWalletBackendParams $ mconcat [
-        long "new-wallet"
-      , help "Use the new wallet implementation (NOT FOR PRODUCTION USE)"
-      ]
+newWalletBackendParamsParser = const NewWalletBackendParams
+    <$> (flag' () $ mconcat [
+            long "new-wallet"
+          , help "Use the new wallet implementation (NOT FOR PRODUCTION USE)"
+          ])
+    <*> walletBackendParamsParser
 
 -- | The @Parser@ for the @WalletBackendParams@.
 walletBackendParamsParser :: Parser WalletBackendParams
